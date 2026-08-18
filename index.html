@@ -4,182 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Academic CV</title>
-    <!-- Tailwind CSS for Modern Light Mode UI -->
+    <!-- Tailwind CSS for Styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- PapaParse for Google Sheets Live Data -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     
     <style>
-        /* A4 Print Optimization */
         @media print {
             body { background-color: white; color: black; }
             .no-print { display: none !important; }
-            .page-break { page-break-before: always; }
             .print-border { border-bottom: 2px solid #333; padding-bottom: 10px; }
-            a { text-decoration: none; color: black; }
         }
-        /* High-Tech Accent for Web */
-        .accent-bg { background-color: #0f172a; }
         .accent-text { color: #0ea5e9; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased">
 
-    <!-- Top Action Bar (Hidden in Print) -->
+    <!-- Action Bar -->
     <div class="no-print bg-white shadow p-4 flex justify-between items-center fixed top-0 w-full z-50">
         <div class="font-bold text-xl text-gray-800">Dynamic<span class="accent-text">CV</span></div>
         <div class="space-x-4">
-            <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
+            <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
                 📥 Print A4 / PDF
             </button>
-            <button onclick="fetchData()" class="bg-gray-800 text-white px-4 py-2 rounded shadow hover:bg-gray-900 transition">
+            <button onclick="fetchData()" class="bg-gray-800 text-white px-4 py-2 rounded shadow hover:bg-gray-900">
                 🔄 Sync Live Data
             </button>
         </div>
     </div>
 
-    <!-- Main CV Container -->
-    <div class="max-w-4xl mx-auto mt-24 mb-10 bg-white shadow-xl rounded-lg overflow-hidden p-8 print:mt-0 print:shadow-none print:p-0">
+    <!-- CV Content -->
+    <div class="max-w-4xl mx-auto mt-24 mb-10 bg-white shadow-xl rounded-lg p-8 print:mt-0 print:shadow-none">
         
-        <!-- Header Section -->
+        <!-- Header & QR -->
         <div class="flex justify-between items-start print-border mb-8">
             <div>
-                <h1 id="cv-name" class="text-4xl font-extrabold text-gray-900 mb-2">Loading Name...</h1>
-                <h2 id="cv-title" class="text-xl font-semibold accent-text mb-4">Loading Title...</h2>
+                <h1 id="cv-name" class="text-4xl font-extrabold text-gray-900 mb-2">Loading...</h1>
+                <h2 id="cv-title" class="text-xl font-semibold accent-text mb-4">...</h2>
                 <div class="text-sm text-gray-600 space-y-1">
-                    <p id="cv-dept">Department...</p>
-                    <p id="cv-uni">University...</p>
-                    <p id="cv-location">Location...</p>
+                    <p id="cv-dept"></p>
+                    <p id="cv-uni"></p>
+                    <p id="cv-location"></p>
                 </div>
             </div>
-            <!-- Smart Card QR Section -->
             <div class="text-center bg-gray-50 p-4 rounded-lg border">
                 <div id="qrcode" class="mb-2 flex justify-center"></div>
                 <p class="text-xs text-gray-500">Scan for Live CV</p>
             </div>
         </div>
 
-        <!-- Professional Affiliations -->
-        <div class="mb-8">
-            <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 mb-4">Research Labs & Leadership</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="p-4 border rounded-lg bg-slate-50">
-                    <h4 class="font-bold text-gray-800">Laboratories</h4>
-                    <p id="cv-labs" class="text-sm text-gray-600 mt-1">...</p>
-                </div>
-                <div class="p-4 border rounded-lg bg-slate-50">
-                    <h4 class="font-bold text-gray-800">Ventures & Consultancy</h4>
-                    <p id="cv-startup" class="text-sm text-gray-600 mt-1">...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Technical Expertise -->
+        <!-- Skills Section -->
         <div class="mb-8">
             <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 mb-4">Core Competencies</h3>
-            <div id="cv-skills" class="flex flex-wrap gap-2 text-sm font-medium text-blue-800">
-                <!-- Skills will be injected here as badges -->
-            </div>
+            <div id="cv-skills" class="flex flex-wrap gap-2 text-sm font-medium"></div>
         </div>
 
-        <!-- UGC API / Publications Block -->
+        <!-- Publications Table -->
         <div class="mb-8">
-            <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 mb-4">Recent Academic Works</h3>
-            <p class="text-sm text-gray-500 mb-4 no-print">Data auto-synced from Google Sheets.</p>
-            <div class="overflow-x-auto">
-                <table class="min-w-full border-collapse border border-gray-300 text-left text-sm">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border border-gray-300 p-2">Year</th>
-                            <th class="border border-gray-300 p-2">Title</th>
-                            <th class="border border-gray-300 p-2">Journal / Publisher</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cv-publications">
-                        <!-- Publication Rows will load here -->
-                    </tbody>
-                </table>
-            </div>
+            <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 mb-4">Academic Publications & UGC API</h3>
+            <table class="min-w-full border-collapse border border-gray-300 text-left text-sm">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 p-2">Year</th>
+                        <th class="border border-gray-300 p-2">Title</th>
+                        <th class="border border-gray-300 p-2">Journal</th>
+                    </tr>
+                </thead>
+                <tbody id="cv-publications"></tbody>
+            </table>
         </div>
-
     </div>
 
-    <!-- Scripts to Fetch Data and Generate QR -->
     <script>
-        // REPLACE WITH YOUR PUBLISHED GOOGLE SHEET CSV LINK
-        // Format: https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv
-        const sheetCSVUrl = 'YOUR_GOOGLE_SHEET_CSV_LINK_HERE';
+        // PASTE YOUR GOOGLE SHEET CSV LINKS HERE
+        const profileCsvUrl = 'YOUR_PROFILE_CSV_LINK_HERE';
+        const publicationsCsvUrl = 'YOUR_PUBLICATIONS_CSV_LINK_HERE';
 
-        // Initialize QR Code
-        const currentUrl = window.location.href;
+        // Generate QR Code dynamically for the current URL
         new QRCode(document.getElementById("qrcode"), {
-            text: currentUrl,
-            width: 100,
-            height: 100,
-            colorDark : "#0f172a",
-            colorLight : "#ffffff",
+            text: window.location.href,
+            width: 100, height: 100,
+            colorDark : "#0f172a", colorLight : "#ffffff",
         });
 
-        // Function to Fetch and Parse Data
-        async function fetchData() {
-            try {
-                // In a real scenario, use PapaParse or fetch the CSV link here.
-                // For MVP demonstration, injecting the parsed JSON logic:
-                const data = {
-                    name: "Dr. Narendra Kumar",
-                    title: "Professor of Geography & Geospatial Data Sciences",
-                    dept: "Department of Geography",
-                    uni: "Hemvati Nandan Bahuguna Garhwal University",
-                    location: "Srinagar, Uttarakhand",
-                    labs: "PoliPixel Lab | GeoDemography and Spatial Analytics Research Lab",
-                    startup: "Learnova India",
-                    skills: "Spatial Demography, QGIS Automation, Terrain Analysis, Electoral Mapping"
-                };
+        // Fetch Live Data
+        function fetchData() {
+            // Fetch Profile Info
+            Papa.parse(profileCsvUrl, {
+                download: true, header: true,
+                complete: function(results) {
+                    let profileData = {};
+                    results.data.forEach(row => { if(row.Key) profileData[row.Key] = row.Value; });
 
-                // Map data to DOM
-                document.getElementById('cv-name').innerText = data.name;
-                document.getElementById('cv-title').innerText = data.title;
-                document.getElementById('cv-dept').innerText = data.dept;
-                document.getElementById('cv-uni').innerText = data.uni;
-                document.getElementById('cv-location').innerText = data.location;
-                document.getElementById('cv-labs').innerText = data.labs;
-                document.getElementById('cv-startup').innerText = data.startup;
-                
-                // Process Skill Badges
-                const skillsContainer = document.getElementById('cv-skills');
-                skillsContainer.innerHTML = '';
-                data.skills.split(',').forEach(skill => {
-                    const span = document.createElement('span');
-                    span.className = 'bg-blue-100 px-3 py-1 rounded-full border border-blue-200';
-                    span.innerText = skill.trim();
-                    skillsContainer.appendChild(span);
-                });
+                    document.getElementById('cv-name').innerText = profileData.Name || '';
+                    document.getElementById('cv-title').innerText = profileData.Title || '';
+                    document.getElementById('cv-dept').innerText = profileData.Department || '';
+                    document.getElementById('cv-uni').innerText = profileData.University || '';
+                    document.getElementById('cv-location').innerText = profileData.Location || '';
+                    
+                    if(profileData.Skills) {
+                        const skillsContainer = document.getElementById('cv-skills');
+                        skillsContainer.innerHTML = ''; 
+                        profileData.Skills.split(',').forEach(skill => {
+                            skillsContainer.innerHTML += `<span class="bg-blue-100 px-3 py-1 rounded-full border border-blue-200 text-blue-800">${skill.trim()}</span>`;
+                        });
+                    }
+                }
+            });
 
-                // Mocking Publication Data for UGC API Table
-                const pubData = [
-                    { year: "2026", title: "Automated Valley Area Demarcation using PyQGIS", journal: "Spatial Analytics Journal" },
-                    { year: "2025", title: "Regional School Closure Predictions using Gram Sabha Data", journal: "Educational Geography Review" }
-                ];
-                
-                const pubTable = document.getElementById('cv-publications');
-                pubTable.innerHTML = '';
-                pubData.forEach(pub => {
-                    pubTable.innerHTML += `
-                        <tr class="hover:bg-gray-50">
-                            <td class="border border-gray-300 p-2">${pub.year}</td>
-                            <td class="border border-gray-300 p-2 font-medium">${pub.title}</td>
-                            <td class="border border-gray-300 p-2 italic">${pub.journal}</td>
-                        </tr>
-                    `;
-                });
-
-            } catch (error) {
-                console.error("Data sync failed", error);
-                alert("Could not sync with Google Sheets. Check link.");
-            }
+            // Fetch Publications
+            Papa.parse(publicationsCsvUrl, {
+                download: true, header: true,
+                complete: function(results) {
+                    const pubTable = document.getElementById('cv-publications');
+                    pubTable.innerHTML = ''; 
+                    results.data.forEach(pub => {
+                        if(pub.Year && pub.Title) {
+                            pubTable.innerHTML += `
+                                <tr>
+                                    <td class="border border-gray-300 p-2">${pub.Year}</td>
+                                    <td class="border border-gray-300 p-2 font-medium">${pub.Title}</td>
+                                    <td class="border border-gray-300 p-2 italic">${pub.Journal}</td>
+                                </tr>
+                            `;
+                        }
+                    });
+                }
+            });
         }
-
-        // Load data on page load
         window.onload = fetchData;
     </script>
 </body>
