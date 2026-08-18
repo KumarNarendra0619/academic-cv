@@ -16,6 +16,8 @@
             body { background-color: white; color: black; }
             .no-print { display: none !important; }
             .print-border { border-bottom: 2px solid #333; padding-bottom: 10px; }
+            /* Force table borders in print */
+            th, td { border: 1px solid #d1d5db !important; }
         }
         .accent-text { color: #0ea5e9; }
     </style>
@@ -61,15 +63,15 @@
             <div id="cv-skills" class="flex flex-wrap gap-2 text-sm font-medium"></div>
         </div>
 
-        <!-- Publications Table -->
+        <!-- Publications Table (Updated for UGC API) -->
         <div class="mb-8">
-            <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 mb-4">Academic Publications & UGC API</h3>
+            <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 mb-4">Academic Publications & UGC API Profile</h3>
             <table class="min-w-full border-collapse border border-gray-300 text-left text-sm">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="border border-gray-300 p-2">Year</th>
-                        <th class="border border-gray-300 p-2">Title</th>
-                        <th class="border border-gray-300 p-2">Journal</th>
+                        <th class="border border-gray-300 p-3 w-20">Year</th>
+                        <th class="border border-gray-300 p-3">Publication Details</th>
+                        <th class="border border-gray-300 p-3 w-40 text-center">UGC Metrics</th>
                     </tr>
                 </thead>
                 <tbody id="cv-publications"></tbody>
@@ -79,8 +81,8 @@
 
     <script>
         // PASTE YOUR GOOGLE SHEET CSV LINKS HERE
-        const profileCsvUrl = 'YOUR_PROFILE_CSV_LINK_HERE';
-        const publicationsCsvUrl = 'YOUR_PUBLICATIONS_CSV_LINK_HERE';
+        const profileCsvUrl = 'YOUR_PROFILE_CSV_LINK_HERE'; 
+        const publicationsCsvUrl = 'YOUR_PUBLICATIONS_CSV_LINK_HERE'; // Replace with new Template Link
 
         // Generate QR Code dynamically for the current URL
         new QRCode(document.getElementById("qrcode"), {
@@ -114,19 +116,46 @@
                 }
             });
 
-            // Fetch Publications
+            // Fetch Publications with new UGC API columns
             Papa.parse(publicationsCsvUrl, {
                 download: true, header: true,
                 complete: function(results) {
                     const pubTable = document.getElementById('cv-publications');
                     pubTable.innerHTML = ''; 
                     results.data.forEach(pub => {
-                        if(pub.Year && pub.Title) {
+                        // Match exact column names from the Google Sheet
+                        if(pub['Year'] && pub['Title of Paper']) {
+                            
+                            // Check for DOI and format it safely
+                            const doiLink = pub['DOI / Link'] ? `<a href="${pub['DOI / Link']}" target="_blank" class="text-xs text-blue-600 hover:underline no-print mt-2 inline-block">🔗 View Document (DOI)</a>` : '';
+                            
+                            // Format Authorship Badge
+                            const authorBadge = pub['Authorship'] ? `<span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200 text-xs font-semibold w-full text-center">${pub['Authorship']}</span>` : '';
+                            
+                            // Format Impact Factor Badge
+                            const ifBadge = pub['Impact Factor'] ? `<span class="bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-200 text-xs font-semibold w-full text-center">IF: ${pub['Impact Factor']}</span>` : '';
+                            
+                            // Peer Reviewed Check
+                            const peerText = pub['Peer-Reviewed'] === 'Yes' ? `<span class="text-gray-500 text-xs text-center w-full">✓ Peer-Reviewed</span>` : '';
+
                             pubTable.innerHTML += `
-                                <tr>
-                                    <td class="border border-gray-300 p-2">${pub.Year}</td>
-                                    <td class="border border-gray-300 p-2 font-medium">${pub.Title}</td>
-                                    <td class="border border-gray-300 p-2 italic">${pub.Journal}</td>
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="border border-gray-300 p-3 align-top font-semibold text-gray-700">${pub['Year']}</td>
+                                    <td class="border border-gray-300 p-3 align-top">
+                                        <div class="font-bold text-gray-900 text-base mb-1">${pub['Title of Paper']}</div>
+                                        <div class="text-sm text-gray-600">
+                                            <span class="italic font-medium">${pub['Journal Name']}</span> 
+                                            ${pub['ISSN / ISBN'] ? `| ISSN: ${pub['ISSN / ISBN']}` : ''}
+                                        </div>
+                                        ${doiLink}
+                                    </td>
+                                    <td class="border border-gray-300 p-3 align-top">
+                                        <div class="flex flex-col gap-1 items-center justify-center">
+                                            ${authorBadge}
+                                            ${ifBadge}
+                                            ${peerText}
+                                        </div>
+                                    </td>
                                 </tr>
                             `;
                         }
